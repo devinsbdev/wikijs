@@ -291,18 +291,18 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create and Push Manifests
-      run: |
+    # - name: Create and Push Manifests
+    #   run: |
 
-        echo "Creating the manifests..."
+        # echo "Creating the manifests..."
 
-        docker manifest create cryptohypocrisy/wiki:$REL_VERSION_STRICT
-        docker manifest create ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
+        # docker manifest create cryptohypocrisy/wiki:$REL_VERSION_STRICT
+        # docker manifest create ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
 
-        echo "Pushing the manifests..."
+        # echo "Pushing the manifests..."
 
-        docker manifest push -p cryptohypocrisy/wiki:$REL_VERSION_STRICT
-        docker manifest push -p ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
+        # docker manifest push -p cryptohypocrisy/wiki:$REL_VERSION_STRICT
+        # docker manifest push -p ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
 
     - name: Download Linux Build
       uses: actions/download-artifact@v2.1.0
