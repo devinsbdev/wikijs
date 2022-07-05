@@ -66,6 +66,7 @@ jobs:
     - name: Extract compiled files
       run: |
         mkdir -p _dist
+        docker pull ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
         docker create --name wiki ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
         docker cp wiki:/wiki _dist
         docker rm wiki
