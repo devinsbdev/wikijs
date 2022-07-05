@@ -63,6 +63,7 @@ jobs:
         push: true
         tags: |
           cryptohypocrisy/wiki:${{ env.REL_VERSION_STRICT }}
+
     - name: Extract compiled files
       run: |
         mkdir -p _dist
@@ -98,8 +99,8 @@ jobs:
           echo "Using TAG mode: $GITHUB_REF_NAME"
           echo "REL_VERSION_STRICT=${GITHUB_REF_NAME#?}" >> $GITHUB_ENV
         else
-          echo "Using BRANCH mode: v$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER"
-          echo "REL_VERSION_STRICT=$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+          echo "Using BRANCH mode: v$BASE_DEV_VERSION"
+          echo "REL_VERSION_STRICT=$BASE_DEV_VERSION" >> $GITHUB_ENV
         fi
 
     - name: Run Tests
@@ -139,47 +140,46 @@ jobs:
           echo "REL_VERSION_STRICT=$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
         fi
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+    # - name: Set up QEMU
+    #   uses: docker/setup-qemu-action@v1
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    # - name: Set up Docker Buildx
+    #   uses: docker/setup-buildx-action@v1
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # - name: Login to DockerHub
+    #   uses: docker/login-action@v1
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Login to GitHub Container Registry
+    #   uses: docker/login-action@v1
+    #   with:
+    #     registry: ghcr.io
+    #     username: ${{ github.repository_owner }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Download a Build Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: drop
-        path: drop
+    # - name: Download a Build Artifact
+    #   uses: actions/download-artifact@v2.1.0
+    #   with:
+    #     name: drop
+    #     path: drop
 
-    - name: Extract Build
-      run: |
-        mkdir -p build
-        tar -xzf $GITHUB_WORKSPACE/drop/wiki-js.tar.gz -C $GITHUB_WORKSPACE/build --exclude=node_modules
+    # - name: Extract Build
+    #   run: |
+    #     mkdir -p build
+    #     tar -xzf $GITHUB_WORKSPACE/drop/wiki-js.tar.gz -C $GITHUB_WORKSPACE/build --exclude=node_modules
 
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: dev/build-arm/Dockerfile
-        platforms: ${{ matrix.platform }}
-        provenance: false
-        push: true
-        tags: |
-          cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
-          ghcr.io/cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
+    # - name: Build and push Docker images
+    #   uses: docker/build-push-action@v2.9.0
+    #   with:
+    #     context: .
+    #     file: dev/build-arm/Dockerfile
+    #     platforms: ${{ matrix.platform }}
+    #     push: true
+    #     tags: |
+    #       cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
+    #       ghcr.io/cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
 
   windows:
     name: Windows Build
@@ -238,30 +238,30 @@ jobs:
         echo "Using TAG mode: $GITHUB_REF_NAME"
         echo "REL_VERSION_STRICT=${GITHUB_REF_NAME#?}" >> $GITHUB_ENV
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # - name: Login to DockerHub
+    #   uses: docker/login-action@v1
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Login to GitHub Container Registry
+    #   uses: docker/login-action@v1
+    #   with:
+    #     registry: ghcr.io
+    #     username: ${{ github.repository_owner }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create and Push Manifests
-      run: |
-        echo "Creating the manifests..."
+    # - name: Create and Push Manifests
+    #   run: |
+    #     echo "Creating the manifests..."
 
-        docker manifest create cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
-        docker manifest create ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+    #     docker manifest create cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+    #     docker manifest create ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
 
-        echo "Pushing the manifests..."
+    #     echo "Pushing the manifests..."
 
-        docker manifest push -p cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
-        docker manifest push -p ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+    #     docker manifest push -p cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+    #     docker manifest push -p ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
 
   release:
     name: Publish Release Images
