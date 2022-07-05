@@ -46,8 +46,8 @@ module.exports = {
           builder.select('tag')
         })
       if (page) {
-        if (WIKI.auth.checkAccess(context.req.user, ['read:comments'], { tags: page.tags, ...args })) {
-          const comments = await WIKI.models.comments.query().where('pageId', page.id).orderBy('createdAt')
+        if (WIKI.auth.checkAccess(context.req.user, ['read:comments'], args)) {
+          const comments = await WIKI.models.comments.query().where('pageId', page.id).orderBy('createdAt', 'desc')
           return comments.map(c => ({
             ...c,
             authorName: c.name,
