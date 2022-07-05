@@ -28,10 +28,11 @@ jobs:
           echo "REL_VERSION=$GITHUB_REF_NAME" >> $GITHUB_ENV
           echo "REL_VERSION_STRICT=${GITHUB_REF_NAME#?}" >> $GITHUB_ENV
         else
-          echo "Using BRANCH mode: v$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER"
-          echo "REL_VERSION=v$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
-          echo "REL_VERSION_STRICT=$BASE_DEV_VERSION-dev.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+          echo "Using BRANCH mode: v$BASE_DEV_VERSION"
+          echo "REL_VERSION=v$BASE_DEV_VERSION" >> $GITHUB_ENV
+          echo "REL_VERSION_STRICT=$BASE_DEV_VERSION" >> $GITHUB_ENV
         fi
+
 
     - name: Disable DEV Flag + Set Version
       run: |
@@ -51,7 +52,7 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: ${{ github.repository_owner }}
+        username: cryptohypocrisy
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker images
@@ -61,15 +62,11 @@ jobs:
         file: dev/build/Dockerfile
         push: true
         tags: |
-          requarks/wiki:canary
-          requarks/wiki:canary-${{ env.REL_VERSION_STRICT }}
-          ghcr.io/requarks/wiki:canary
-          ghcr.io/requarks/wiki:canary-${{ env.REL_VERSION_STRICT }}
-
+          cryptohypocrisy/wiki:${{ env.REL_VERSION_STRICT }}
     - name: Extract compiled files
       run: |
         mkdir -p _dist
-        docker create --name wiki ghcr.io/requarks/wiki:canary-$REL_VERSION_STRICT
+        docker create --name wiki ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
         docker cp wiki:/wiki _dist
         docker rm wiki
         rm _dist/wiki/config.yml
@@ -89,7 +86,7 @@ jobs:
 
     strategy:
       matrix:
-        dbtype: [postgres, mysql, mariadb, mssql, sqlite]
+        dbtype: [postgres]
 
     steps:
     - uses: actions/checkout@v4
@@ -179,8 +176,8 @@ jobs:
         platforms: ${{ matrix.platform }}
         push: true
         tags: |
-          requarks/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
-          ghcr.io/requarks/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
+          cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
+          ghcr.io/cryptohypocrisy/wiki:canary-${{ matrix.docker }}-${{ env.REL_VERSION_STRICT }}
 
   windows:
     name: Windows Build
@@ -238,24 +235,17 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    # - name: Create and Push Manifests
-    #   run: |
+    - name: Create and Push Manifests
+      run: |
+        echo "Creating the manifests..."
 
-        # echo "Creating the manifests..."
+        docker manifest create cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+        docker manifest create ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
 
-        # docker manifest create cryptohypocrisy/wiki:$REL_VERSION_STRICT
-        # docker manifest create ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
+        echo "Pushing the manifests..."
 
-        # echo "Pushing the manifests..."
-
-        # docker manifest push -p cryptohypocrisy/wiki:$REL_VERSION_STRICT
-        # docker manifest push -p ghcr.io/cryptohypocrisy/wiki:$REL_VERSION_STRICT
-
-    # - name: Download Linux Build
-    #   uses: actions/download-artifact@v2.1.0
-    #   with:
-    #     name: drop
-    #     path: drop
+        docker manifest push -p cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
+        docker manifest push -p ghcr.io/cryptohypocrisy/wiki:beta-$REL_VERSION_STRICT
 
     - name: Download Windows Build
       uses: actions/download-artifact@v4
