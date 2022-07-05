@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://localhost:3000",
-  "projectId": "r7qxah",
+  "projectId": "t4tp7r",
   "fixturesFolder": false,
   "integrationFolder": "dev/cypress/integration",
   "pluginsFile": "dev/cypress/plugins/index.js",
