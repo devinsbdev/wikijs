@@ -33,7 +33,6 @@ jobs:
           echo "REL_VERSION_STRICT=$BASE_DEV_VERSION" >> $GITHUB_ENV
         fi
 
-
     - name: Disable DEV Flag + Set Version
       run: |
         sudo apt-get install jq -y
@@ -191,7 +190,7 @@ jobs:
       uses: Requarks/changelog-action@v1
       with:
         token: ${{ github.token }}
-        tag: ${{ github.ref_name }}
+        tag: $REL_VERSION
         writeToFile: false
 
     - name: Update GitHub Release
