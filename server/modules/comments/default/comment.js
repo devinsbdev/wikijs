@@ -119,31 +119,6 @@ module.exports = {
     // -> Save Comment to DB
     const cm = await WIKI.models.comments.query().insert(newComment)
 
-    let emails = [
-      process.env.NOTIFY_EMAIL
-    ]
-
-    let pageLink = `${WIKI.config.host}/${page.localeCode}/${page.path}`
-    let pageRef = `'${page.title}'`
-    let subjRef = `New Comment Added - ${page.title}`
-
-    // --> Email admins to notify new comment
-    var opts = {
-      template: 'new-page',
-      to: emails,
-      subject: subjRef,
-      data: {
-        preheadertext: `A comment was added to '${pageRef}'`,
-        title: `A comment was added to '${pageRef}' by ${user.name}.`,
-        content: contentToMd,
-        buttonLink: pageLink,
-        buttonText: `Open '${pageRef}'`
-      },
-      text: `A comment was added to '${pageRef}'. Open the following link to check it out: ${pageLink}`
-    }
-
-    WIKI.mail.send(opts)
-
     // -> Return Comment ID
     return cm.id
   },
