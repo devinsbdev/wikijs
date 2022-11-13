@@ -358,33 +358,6 @@ module.exports = class Page extends Model {
     // -> Get latest updatedAt
     page.updatedAt = await WIKI.models.pages.query().findById(page.id).select('updatedAt').then(r => r.updatedAt)
 
-    // -> send email notification when new page is created
-    // content is markdown or html
-    let emails = [
-      process.env.NOTIFY_EMAIL
-    ]
-
-    let pageLink = `${WIKI.config.host}/${page.localeCode}/${page.path}`
-    let pageRef = `'${page.title}'`
-    let subjRef = `New Page Created - ${page.title}`
-
-    // --> Email admins to notify new post
-    var emailOpts = {
-      template: 'new-page',
-      to: emails,
-      subject: subjRef,
-      data: {
-        preheadertext: `A new page was created: '${pageRef}'`,
-        title: `A new page titled '${pageRef}' was created by ${opts.user.name}.`,
-        content: pageContents.render,
-        buttonLink: pageLink,
-        buttonText: `Open '${pageRef}'`
-      },
-      text: `A new page was created: '${pageRef}'. Open the following link to check it out: ${pageLink}`
-    }
-
-    WIKI.mail.send(emailOpts)
-
     return page
   }
 
@@ -476,7 +449,10 @@ module.exports = class Page extends Model {
     // -> Update Search Index
     const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
     page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
-    await WIKI.data.searchEngine.updated(page)
+
+    // -> Index page as well as comments
+    await WIKI.models.comments.indexComments(page.id)
+    // await WIKI.data.searchEngine.updated(page)
 
     // -> Update on Storage
     if (!opts.skipStorage) {
