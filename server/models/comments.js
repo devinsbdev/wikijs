@@ -56,6 +56,18 @@ module.exports = class Comment extends Model {
     this.createdAt = new Date().toISOString()
     this.updatedAt = new Date().toISOString()
   }
+  async $afterInsert() {
+    // -> Add to Search Index
+    await WIKI.models.comments.indexComments(this.pageId)
+    // -> Send new comment notification
+    await WIKI.models.comments.sendNotify(this.pageId, this.content, this.email)
+  }
+  static async afterUpdate({ asFindQuery }) {
+    // -> Add to Search Index
+    const comment = await asFindQuery().select('id')
+    const pageId = await WIKI.data.commentProvider.getPageIdFromCommentId(comment[0].id)
+    await WIKI.models.comments.indexComments(pageId)
+  }
 
   /**
    * Post New Comment
@@ -189,5 +201,78 @@ module.exports = class Comment extends Model {
         ip
       }
     })
+  }
+
+  /**
+ * Add page comments to Page.extra.comment and
+ * tell elasticsearch to index it
+ *
+ * @param {uint} pageId Page Id
+ * @return {Promise} Updated Page
+ *
+ */
+
+  static async indexComments(pageId) {
+    // get comments for indexing purposes
+    const existingComments = await WIKI.models.comments.query()
+      .where('pageId', pageId)
+      .orderBy('createdAt', 'desc')
+    if (existingComments) {
+      var cArray = []
+      const page = await WIKI.models.pages.query().findById(pageId)
+      existingComments.forEach(ec => {
+        cArray.push(ec.content)
+      })
+
+      // -> Set Page.extra.comment field with array containing any comments found
+      await WIKI.models.pages.query().patch({
+        extra: JSON.stringify({
+          ...page.extra,
+          comment: cArray
+        })
+      }).where('id', page.id)
+
+      // -> get updated Page obj; indexer wants `safeContent`
+      const updPage = await WIKI.models.pages.query().findById(page.id)
+      const pgContent = await WIKI.models.pages.query().findById(page.id).select('render')
+      updPage.safeContent = WIKI.models.pages.cleanHTML(pgContent.render)
+
+      // -> Update search index for this page
+      return WIKI.data.searchEngine.updated(updPage)
+    } else {
+      WIKI.logger.info('No comments to index on this page.')
+    }
+  }
+  /**
+   * Send email notification for new comment
+   *
+   * @param {uint} pageId Page Id
+   * @param {string} content Comment Content
+   * @param {string} author Author Email
+   *
+   */
+  static async sendNotify(pageId, content, author) {
+    const page = await WIKI.models.pages.query().findById(pageId)
+    let pageLink = `${WIKI.config.host}/${page.localeCode}/${page.path}`
+    let pageRef = `'${page.title}'`
+    let subjRef = `[wiki.js] New comment on ${page.title}`
+    let textMeBb = `A new comment was added to '${pageRef}'. More information: ${pageLink}`
+    let emails = [
+      process.env.NOTIFY_EMAIL
+    ]
+    var emailOpts = {
+      template: 'new-page',
+      to: emails,
+      subject: subjRef,
+      data: {
+        preheadertext: `New comment on '${pageRef}'`,
+        title: `${author} commented on '${pageRef}'.`,
+        content: content,
+        buttonLink: pageLink,
+        buttonText: `Open '${pageRef}'`
+      },
+      text: textMeBb
+    }
+    WIKI.mail.send(emailOpts)
   }
 }

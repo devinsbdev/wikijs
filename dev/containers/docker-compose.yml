@@ -52,7 +52,17 @@ services:
       - ../..:/wiki
       - /wiki/node_modules
       - /wiki/.git
+    environment:
+      - NOTIFY_EMAIL="dimirie@smithbucklin.com"
 
+  elasticwiki:
+    container_name: wiki-elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
 
 volumes:
   db-data:
