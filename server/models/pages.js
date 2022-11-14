@@ -1192,8 +1192,7 @@ module.exports = class Page extends Model {
     let textMeBb = `A new page was added: '${pageRef}'. More information: ${pageLink}`
 
     let emails = [
-      // process.env.NOTIFY_EMAIL
-      'corpitdocs-notify@smithbucklin.com'
+      process.env.NOTIFY_EMAIL
     ]
 
     var emailOpts = {
