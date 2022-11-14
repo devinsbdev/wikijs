@@ -336,7 +336,7 @@ module.exports = class Page extends Model {
     await WIKI.models.pages.rebuildTree()
 
     // -> Add to Search Index
-    const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
+    const pageContents = await WIKI.models.pages.query().findById(page.id).select('render', 'content')
     page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
     await WIKI.data.searchEngine.created(page)
 
@@ -357,6 +357,9 @@ module.exports = class Page extends Model {
 
     // -> Get latest updatedAt
     page.updatedAt = await WIKI.models.pages.query().findById(page.id).select('updatedAt').then(r => r.updatedAt)
+
+    // -> send notification
+    await WIKI.models.pages.sendNotify(page, pageContents.render)
 
     return page
   }
@@ -1173,5 +1176,40 @@ module.exports = class Page extends Model {
     WIKI.events.inbound.on('flushCache', () => {
       WIKI.models.pages.flushCache()
     })
+  }
+
+  /**
+   * Send email notification for new comment
+   *
+   * @param {Page} page Page
+   * @param {string} content string
+   *
+   */
+  static async sendNotify(page, content) {
+    let pageLink = `${WIKI.config.host}/${page.localeCode}/${page.path}`
+    let pageRef = `'${page.title}'`
+    let subjRef = `[wiki.js] New page added: ${page.title}`
+    let textMeBb = `A new page was added: '${pageRef}'. More information: ${pageLink}`
+
+    let emails = [
+      // process.env.NOTIFY_EMAIL
+      'corpitdocs-notify@smithbucklin.com'
+    ]
+
+    var emailOpts = {
+      template: 'new-page',
+      to: emails,
+      subject: subjRef,
+      data: {
+        preheadertext: `New page added '${pageRef}'`,
+        title: `${page.authorEmail} added a new page: '${pageRef}'.`,
+        content: content,
+        buttonLink: pageLink,
+        buttonText: `Open '${pageRef}'`
+      },
+      text: textMeBb
+    }
+
+    WIKI.mail.send(emailOpts)
   }
 }
