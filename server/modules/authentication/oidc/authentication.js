@@ -19,7 +19,9 @@ module.exports = {
         issuer: conf.issuer,
         userInfoURL: conf.userInfoURL,
         callbackURL: conf.callbackURL,
-        passReqToCallback: true
+        passReqToCallback: true,
+        skipUserProfile: conf.skipUserProfile,
+        acrValues: conf.acrValues
       }, async (req, iss, uiProfile, idProfile, context, idToken, accessToken, refreshToken, params, cb) => {
         const profile = Object.assign({}, idProfile, uiProfile)
 
@@ -28,7 +30,8 @@ module.exports = {
             providerKey: req.params.strategy,
             profile: {
               ...profile,
-              email: _.get(profile, '_json.' + conf.emailClaim)
+              email: _.get(profile, '_json.' + conf.emailClaim),
+              displayName: _.get(profile, '_json.' + conf.displayNameClaim, '')
             }
           })
           if (conf.mapGroups) {

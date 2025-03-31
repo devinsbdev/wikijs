@@ -18,13 +18,14 @@ npm-debug.log*
 .lock
 
 # Generated assets
-/assets
+/assets*
 server/views/master.pug
 server/views/legacy/master.pug
 server/views/setup.pug
 
 # Webpack
 .webpack-cache
+.webpack-cache.orig
 .fusebox
 
 # Config Files

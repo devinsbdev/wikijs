@@ -5,7 +5,7 @@ version: "3"
 services:
   db:
     container_name: wiki-db
-    image: postgres:9-alpine
+    image: postgres:15-alpine
     environment:
       POSTGRES_DB: wiki
       POSTGRES_PASSWORD: wikijsrocks
@@ -50,8 +50,8 @@ services:
       - "3000:3000"
     volumes:
       - ../..:/wiki
+      - ../../.git:/wiki/.git
       - /wiki/node_modules
-      - /wiki/.git
     environment:
       - NOTIFY_EMAIL="dimirie@smithbucklin.com"
 

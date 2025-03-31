@@ -731,7 +731,7 @@ module.exports = class Page extends Model {
     const destinationHash = pageHelper.generateHash({ path: opts.destinationPath, locale: opts.destinationLocale, privateNS: opts.isPrivate ? 'TODO' : '' })
 
     // -> Move page
-    const destinationTitle = (page.title === page.path ? opts.destinationPath : page.title)
+    const destinationTitle = (page.title === _.last(page.path.split('/')) ? _.last(opts.destinationPath.split('/')) : page.title)
     await WIKI.models.pages.query().patch({
       path: opts.destinationPath,
       localeCode: opts.destinationLocale,
@@ -751,6 +751,7 @@ module.exports = class Page extends Model {
       ...page,
       destinationPath: opts.destinationPath,
       destinationLocaleCode: opts.destinationLocale,
+      title: destinationTitle,
       destinationHash
     })
 
