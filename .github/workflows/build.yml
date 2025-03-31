@@ -62,20 +62,3 @@ jobs:
         push: true
         tags: |
           devinsbdev/wiki:${{ env.REL_VERSION_STRICT }}
-
-    - name: Extract compiled files
-      run: |
-        mkdir -p _dist
-        docker pull ghcr.io/devinsbdev/wiki:$REL_VERSION_STRICT
-        docker create --name wiki ghcr.io/devinsbdev/wiki:$REL_VERSION_STRICT
-        docker cp wiki:/wiki _dist
-        docker rm wiki
-        rm _dist/wiki/config.yml
-        cp ./config.sample.yml _dist/wiki/config.sample.yml
-        find _dist/wiki/ -printf "%P\n" | tar -czf wiki-js.tar.gz --no-recursion -C _dist/wiki/ -T -
-
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: drop
-        path: wiki-js.tar.gz
