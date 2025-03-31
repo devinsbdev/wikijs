@@ -4,25 +4,49 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    {
-      "type": "node",
-      "request": "attach",
-      "name": "Attach (Inspector Protocol)",
-      "port": 9229,
-      "protocol": "inspector"
-    },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceRoot}\\server.js"
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Port",
-            "address": "localhost",
-            "port": 9222
-        }
+      {
+        "name": "Attach to Chrome",
+        "port": 9222,
+        "request": "attach",
+        "type": "chrome",
+        "webRoot": "${workspaceFolder}"
+      },
+      {
+        "name": "Launch Chrome",
+        "request": "launch",
+        "type": "chrome",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder}", // Adjust this to your client-side code directory
+        "internalConsoleOptions": "openOnSessionStart", // Open the internal console when the session starts
+        "runtimeArgs": [
+          "--remote-debugging-port=9222" // This will ensure Chrome starts with the remote debugging enabled on port 9222
+        ]
+      },
+      {
+        "type": "node",
+        "request": "attach",
+        "name": "Attach (Inspector Protocol)",
+        "port": 9229,
+        // "protocol": "inspector" // Removed as it is not allowed
+      },
+      {
+          "type": "node",
+          "request": "launch",
+          "name": "Launch Program",
+          "program": "${workspaceRoot}/server/index.js",
+          "runtimeExecutable": "node",
+          "runtimeArgs": [
+              "--inspect=9229" // This will ensure the Node.js process starts with the inspector enabled on port 9229
+          ],
+          "console": "integratedTerminal", // Use the integrated terminal for input/output
+          "internalConsoleOptions": "openOnSessionStart", // Open the internal console when the session starts
+      },
+      {
+          "type": "node",
+          "request": "attach",
+          "name": "Attach to Port",
+          "address": "localhost",
+          "port": 9229
+      }
     ]
 }

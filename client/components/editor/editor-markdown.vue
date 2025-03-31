@@ -433,21 +433,24 @@ export default {
       this.processContent(newContent)
     }, 600),
     onCmPaste (cm, ev) {
-      // const clipItems = (ev.clipboardData || ev.originalEvent.clipboardData).items
-      // for (let clipItem of clipItems) {
-      //   if (_.startsWith(clipItem.type, 'image/')) {
-      //     const file = clipItem.getAsFile()
-      //     const reader = new FileReader()
-      //     reader.onload = evt => {
-      //       this.$store.commit(`loadingStart`, 'editor-paste-image')
-      //       this.insertAfter({
-      //         content: `![${file.name}](${evt.target.result})`,
-      //         newLine: true
-      //       })
-      //     }
-      //     reader.readAsDataURL(file)
-      //   }
-      // }
+      const clipItems = (ev.clipboardData || ev.originalEvent.clipboardData).items
+      for (let clipItem of clipItems) {
+        if (_.startsWith(clipItem.type, 'image/')) {
+          const ts = new Date().valueOf()
+          const file = clipItem.getAsFile()
+          console.log(`filename: ${file.name}-${ts}`)
+          const reader = new FileReader()
+          reader.onload = evt => {
+            this.$store.commit(`loadingStart`, 'editor-paste-image')
+            this.insertAfter({
+              newLine: true,
+              content: `![${file.name}-${ts}](${evt.target.result})`
+              // content: `![${file.name}](${evt.target.result})`
+            })
+          }
+          reader.readAsDataURL(file)
+        }
+      }
     },
     processContent (newContent) {
       linesMap = []
@@ -801,6 +804,31 @@ export default {
       this.setHeaderLine(lvl - 1)
       return false
     })
+    _.set(keyBindings, `${CtrlKey}-Alt-B`, c => {
+      this.toggleMarkup({ start: `\`\`\`bash\n`, end: `\n\`\`\`` })
+      return false
+    })
+    _.set(keyBindings, `${CtrlKey}-Alt-P`, c => {
+      this.toggleMarkup({ start: `\`\`\`powershell\n`, end: `\n\`\`\`` })
+      return false
+    })
+    _.set(keyBindings, `${CtrlKey}-Alt-J`, c => {
+      this.toggleMarkup({ start: `\`\`\`javascript\n`, end: `\n\`\`\`` })
+      return false
+    })
+    _.set(keyBindings, `${CtrlKey}-Alt-X`, c => {
+      this.toggleMarkup({ start: `\`\`\`xml\n`, end: `\n\`\`\`` })
+      return false
+    })
+    _.set(keyBindings, `${CtrlKey}-Alt-H`, c => {
+      this.toggleMarkup({ start: `\`\`\`html\n`, end: `\n\`\`\`` })
+      return false
+    })
+    _.set(keyBindings, `${CtrlKey}-Alt-C`, c => {
+      this.toggleMarkup({ start: `\`\`\`css\n`, end: `\n\`\`\`` })
+      return false
+    })
+
     this.cm.setOption('extraKeys', keyBindings)
 
     this.cm.on('inputRead', this.autocomplete)
