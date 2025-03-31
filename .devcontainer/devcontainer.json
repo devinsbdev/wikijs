@@ -7,27 +7,38 @@
   "dockerComposeFile": [
     "../dev/containers/docker-compose.yml"
   ],
-  "forwardPorts": [3000, 3001],
+  "forwardPorts": [3000, 3001], // 3000: Wiki.js, 3001: WebSocket, 9229: Debugging
+  "shutdownAction": "stopCompose", // Stop the containers when the workspace is closed
   "service": "wiki",
   "workspaceFolder": "/wiki",
-  "settings": {
-    "terminal.integrated.shell.linux": "/bin/bash"
-  },
-  "extensions": [
-	"EditorConfig.editorconfig",
-	"dbaeumer.vscode-eslint",
-	"christian-kohler.path-intellisense",
-	"mrmlnc.vscode-puglint",
-	"octref.vetur",
-	"dzannotti.vscode-babel-coloring",
-	"wayou.vscode-todo-highlight",
-	"visualstudioexptteam.vscodeintellicode",
-	"lukas-tr.materialdesignicons-intellisense",
-	"codezombiech.gitignore",
-	"kumar-harsh.graphql-for-vscode",
-	"mrmlnc.vscode-duplicate",
-	"oderwat.indent-rainbow",
-	"christian-kohler.npm-intellisense"
-],
+"customizations": {
+  "vscode": {
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+      "EditorConfig.editorconfig",
+      "dbaeumer.vscode-eslint",
+      "christian-kohler.path-intellisense",
+      "mrmlnc.vscode-puglint",
+      "octref.vetur",
+      "dzannotti.vscode-babel-coloring",
+      "wayou.vscode-todo-highlight",
+      "visualstudioexptteam.vscodeintellicode",
+      "lukas-tr.materialdesignicons-intellisense",
+      "codezombiech.gitignore",
+      "kumar-harsh.graphql-for-vscode",
+      "mrmlnc.vscode-duplicate",
+      "oderwat.indent-rainbow",
+      "christian-kohler.npm-intellisense",
+      "sdras.vue-vscode-snippets",
+      "Vue.volar", // For Vue 3 support, replace Vetur with Volar
+      "GitHub.copilot",
+      "github.vscode-github-actions", // For GitHub Actions support"
+      "ms-edgedevtools.vscode-edge-devtools",
+      "redhat.vscode-yaml"
+    ]
+  }
+},
   "postCreateCommand": ["yarn", "install"]
 }
