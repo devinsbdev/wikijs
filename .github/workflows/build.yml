@@ -3,12 +3,14 @@ name: Build + Publish
 on:
   push:
     branches:
-      - 2.5.307-d
+      - 2.5.308-d
+      - origin/2.5.308-d
     tags:
       - 'v*'
+      - 'origin/v*'
 
 env:
-  BASE_DEV_VERSION: 2.5.307
+  BASE_DEV_VERSION: 2.5.308
 
 jobs:
 

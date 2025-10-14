@@ -154,6 +154,31 @@ module.exports = {
       if (page) {
         if (WIKI.auth.checkAccess(context.req.user, ['manage:pages', 'delete:pages'], {
           path: page.path,
+          locale: page.localeCode,
+          tags: page.tags
+        })) {
+          return {
+            ...page,
+            locale: page.localeCode,
+            editor: page.editorKey,
+            scriptJs: page.extra.js,
+            scriptCss: page.extra.css
+          }
+        } else {
+          throw new WIKI.Error.PageViewForbidden()
+        }
+      } else {
+        throw new WIKI.Error.PageNotFound()
+      }
+    },
+    async singleByPath(obj, args, context, info) {
+      let page = await WIKI.models.pages.getPageFromDb({
+        path: args.path,
+        locale: args.locale,
+      });
+      if (page) {
+        if (WIKI.auth.checkAccess(context.req.user, ['manage:pages', 'delete:pages'], {
+          path: page.path,
           locale: page.localeCode
         })) {
           return {
@@ -263,35 +288,72 @@ module.exports = {
         }
       }
 
-      const results = await WIKI.models.knex('pageTree').where(builder => {
-        builder.where('localeCode', args.locale)
+      const results = await WIKI.models.knex('pageTree')
+          .select(
+              'pageTree.ancestors',
+              'pageTree.depth',
+              'pageTree.id',
+              'pageTree.pageId',
+              'pageTree.isFolder',
+              'pageTree.isPrivate',
+              'pageTree.path',
+              'pageTree.privateNS',
+              'pageTree.title',
+              'pageTree.localeCode',
+              'tags.tag'
+          )
+          .leftJoin({ ChildPageTree: 'pageTree'}, 'ChildPageTree.parent', 'pageTree.id')
+          .leftJoin({ ChildChildPageTree: 'pageTree'}, 'ChildChildPageTree.parent', 'ChildPageTree.id')
+          .leftJoin('pageTags', function() {
+            this.on('pageTree.pageId', '=', 'pageTags.pageId')
+            .orOn('ChildPageTree.pageId', '=', 'pageTags.pageId')
+            .orOn('ChildChildPageTree.pageId', '=', 'pageTags.pageId')
+          })
+          .leftJoin('tags', 'tags.id', 'pageTags.tagId')
+          .where(builder => {
+        builder.where('pageTree.localeCode', args.locale)
         switch (args.mode) {
           case 'FOLDERS':
-            builder.andWhere('isFolder', true)
+            builder.andWhere('pageTree.isFolder', true)
             break
           case 'PAGES':
-            builder.andWhereNotNull('pageId')
+            builder.andWhereNotNull('pageTree.pageId')
             break
         }
         if (!args.parent || args.parent < 1) {
-          builder.whereNull('parent')
+          builder.whereNull('pageTree.parent')
         } else {
-          builder.where('parent', args.parent)
+          builder.where('pageTree.parent', args.parent)
           if (args.includeAncestors && curPage && curPage.ancestors.length > 0) {
-            builder.orWhereIn('id', _.isString(curPage.ancestors) ? JSON.parse(curPage.ancestors) : curPage.ancestors)
+            builder.orWhereIn('pageTree.id', _.isString(curPage.ancestors) ? JSON.parse(curPage.ancestors) : curPage.ancestors)
           }
         }
-      }).orderBy([{ column: 'isFolder', order: 'desc' }, 'title'])
+      })
+      //.orderBy([{ column: 'pageTree.isFolder', order: 'desc' }, 'pageTree.title'])
+      .then(function(data) {
+            return _.chain(data)
+            .groupBy('id')
+            .map(function(pageTree) {
+                var pageTreeEl = _.chain(pageTree).first().value();
+                var tags = _.map(pageTree, function(u) {
+                    return { 'tag': u.tag };
+                 });
+                 pageTreeEl.tags = tags;
+                 return pageTreeEl;
+            })
+      })
+
       return results.filter(r => {
         return WIKI.auth.checkAccess(context.req.user, ['read:pages'], {
           path: r.path,
-          locale: r.localeCode
+          locale: r.localeCode,
+          tags: r.tags
         })
       }).map(r => ({
         ...r,
         parent: r.parent || 0,
         locale: r.localeCode
-      }))
+      })).orderBy(['isFolder', 'title'], ['desc', 'asc'])
     },
     /**
      * FETCH PAGE LINKS
