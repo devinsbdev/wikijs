@@ -149,8 +149,7 @@ module.exports = class Comment extends Model {
     if (page) {
       if (!WIKI.auth.checkAccess(user, ['manage:comments'], {
         path: page.path,
-        locale: page.localeCode,
-        tags: page.tags
+        locale: page.localeCode
       })) {
         throw new WIKI.Error.CommentManageForbidden()
       }
@@ -183,8 +182,7 @@ module.exports = class Comment extends Model {
     if (page) {
       if (!WIKI.auth.checkAccess(user, ['manage:comments'], {
         path: page.path,
-        locale: page.localeCode,
-        tags: page.tags
+        locale: page.localeCode
       })) {
         throw new WIKI.Error.CommentManageForbidden()
       }

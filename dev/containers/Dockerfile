@@ -1,11 +1,10 @@
 # -- DEV DOCKERFILE --
 # -- DO NOT USE IN PRODUCTION! --
 
-FROM node:18
+FROM node:20-alpine
 LABEL maintainer "requarks.io"
 
-RUN apt-get update && \
-    apt-get install -y bash curl git python3 make g++ nano openssh-server gnupg && \
+RUN apk add yarn g++ make cmake python3 --no-cache && \
     mkdir -p /wiki
 
 WORKDIR /wiki
